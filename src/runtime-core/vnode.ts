@@ -6,7 +6,8 @@ export function createVNode(type,props?,children?) {
     type,
     props,
     children,
-    shapeFlag: 0
+    el:null,
+    shapeFlag: getShapeFlag(type)
    }
    if(Array.isArray(children)) {
     vnode.shapeFlag = setArrayChildren(vnode.shapeFlag)
@@ -14,16 +15,10 @@ export function createVNode(type,props?,children?) {
 
     vnode.shapeFlag = setTextChildren(vnode.shapeFlag)
    }
-   confirmShapeFlags(vnode)
    return vnode
 }
 
-function confirmShapeFlags(vnode) {
-    
-    if(isObject(vnode.type)) {
-        vnode.shapeFlag = setStatefulComponent(vnode.shapeFlag)
-        
-    } else if(isString(vnode.type)) {
-        vnode.shapeFlag = setElement(vnode.shapeFlag)
-    }
-}
+
+function getShapeFlag(type) {
+    return isString(type) ? ShapeFlags.ELEMENT : ShapeFlags.STATEFUL_COMPONENT
+  }

@@ -1,5 +1,5 @@
 import { isArrayChildren, isElement, isStatefulComponent, isTextChildren, ShapeFlags } from "../share/shapeFlags"
-import { createComponentInstance, setupComponentInstance, setupRenderEffect } from "./componentInstance"
+import { createComponentInstance, setupComponentInstance } from "./componentInstance"
 
 
 export function render(vnode,container) {
@@ -10,11 +10,11 @@ export function render(vnode,container) {
 
 export function patch(vnode,container) {
     //判断vnode的类型
-    
+    const {shapeFlag} = vnode
     // stateful component 类型
-    if(isStatefulComponent(vnode.shapeFlag)) {
+    if(isStatefulComponent(shapeFlag)) {
         processComponent(vnode,container)
-    } else if(isElement(vnode.shapeFlag)){
+    } else if(isElement(shapeFlag)){
         //element类型
         processElement(vnode,container)
     }
@@ -28,7 +28,7 @@ function processComponent(vnode: any, container: any) {
      */
 
     mountComponent(vnode,container)
-    //更新component
+    // todo 更新component
 }
 function processElement(vnode: any, container: any) {
     //初始化element
@@ -36,6 +36,10 @@ function processElement(vnode: any, container: any) {
 }
 
 function mountComponent(initialVNode: any, container: any) {
+    /**
+     * 类似以component 为模板创建对应的vnode
+     * 在此以 statefulComponent为模板创建对应的instance
+     */
     const instance = createComponentInstance(initialVNode)
     
 
@@ -48,18 +52,22 @@ function mountComponent(initialVNode: any, container: any) {
 
 }
 
+function setupRenderEffect(instance,initialVNode,container) {
+    
+    const {proxy} = instance
+    const subTree = instance.render.call(proxy)
+ 
+    patch(subTree,container)
+    instance.vnode.el = subTree.el
+ }
+
+
 function mountElement(vnode: any, container: any) {
     //根据type渲染标签
     const {type,props,children,shapeFlag} = vnode
-    const el = document.createElement(type)
+    const el = vnode.el = document.createElement(type)
     //挂载props中的属性
     setAttributes(props,el)
-    //处理children中的子组件
-    // if(Array.isArray(children)) {
-    //     mountChildren(children,el)
-    // } else {
-
-    // }
     if(isTextChildren(shapeFlag)) {
         el.textContent = children
     } else if (isArrayChildren(shapeFlag)) {
